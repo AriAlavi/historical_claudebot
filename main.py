@@ -1,5 +1,5 @@
-from chat import AnthropicChat
-from discord_bot import DiscordService
+from src.chat import AnthropicChat
+from src.discord_bot import DiscordService
 
 
 def main():

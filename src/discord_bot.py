@@ -1,6 +1,6 @@
 import discord
 from threading import Thread
-from private_data import discord_token
+from src.private_data import discord_token
 
 
 class DiscordService(discord.Client):
@@ -12,6 +12,9 @@ class DiscordService(discord.Client):
         self._main_channels = {}
 
     def get_main_channel(self, guild: str) -> discord.TextChannel:
+        """
+        Get the main channel for a guild.
+        """
         if guild in self._main_channels:
             return self._main_channels[guild]
 
@@ -35,10 +38,35 @@ class DiscordService(discord.Client):
         """
         Thread(target=self.run, args=(self.discord_token,), daemon=True).start()
 
-    async def send_message(self, message: str, guild: str):
+    async def send_general_message(self, message: str, guild: str):
+        """
+        Send a message to the general channel of a guild.
+        """
         print(f"Sending message {message}")
         channel = self.get_main_channel(guild)
         await channel.send(message)
+
+    async def send_message(self, message: str, channel: discord.TextChannel):
+        """
+        Send a message to a specific channel.
+        """
+        print(f"Sending message {message}")
+        await channel.send(message)
+
+    def _strip_mentions(self, message: discord.Message) -> str:
+        """
+        Strip all user mentions from the message.
+        """
+        # Skip if there are no mentions
+        if not message.mentions:
+            return message.content
+
+        cleaned_message = message.content
+        for mention in message.mentions:
+            cleaned_message = cleaned_message.replace(f"<@{mention.id}>", "").replace(
+                f"<@!{mention.id}>", ""
+            )
+        return cleaned_message
 
     async def on_message(self, message: discord.Message):
         """Handle incoming messages"""
@@ -48,7 +76,9 @@ class DiscordService(discord.Client):
 
         # Check if the bot was mentioned
         if self.user in message.mentions:
-            await self.send_message("Hello!", message.guild)
+            # Remove all user mentions from the message
+            cleaned_content = self._strip_mentions(message)
+            await self.send_message(cleaned_content, message.channel)
 
     def run(self):
         super().run(self.discord_token)

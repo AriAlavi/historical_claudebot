@@ -1,5 +1,5 @@
 from anthropic import Anthropic
-from private_data import anthropic_api_key
+from src.private_data import anthropic_api_key
 
 
 class AnthropicChat:
