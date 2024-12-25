@@ -13,7 +13,7 @@ class DiscordService(discord.Client):
         self.discord_token = discord_token(personality.name)
         super().__init__(intents=intents)
         self._main_channels = {}
-        self.message_history_limit = 100
+        self.message_history_limit = 20
         self.messenger: Messenger = None
 
     def get_main_channel(self, guild: str) -> discord.TextChannel:
@@ -74,23 +74,6 @@ class DiscordService(discord.Client):
                 f"<@!{mention.id}>", ""
             )
         return cleaned_message
-
-    async def get_two_way_recent_messages(
-        self, channel, limit=100
-    ) -> list[DiscordMessage]:
-        """
-        Fetch messages from the last hour that either mention the bot or were sent by the bot
-        Returns: List of (timestamp, author, content) tuples
-
-        Used for a two-way conversation with the bot.
-        """
-        messages = await self.get_messages(channel, limit)
-        messages = [
-            message
-            for message in messages
-            if message.directed_to_me or message.sent_by_me
-        ]
-        return messages
 
     async def get_messages(
         self, channel: discord.TextChannel, hours=1
