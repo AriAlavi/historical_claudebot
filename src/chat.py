@@ -4,6 +4,7 @@ from src.messenger import DiscordMessage
 from typing import List
 from src.personality import Personality
 import discord
+import random
 
 
 class AnthropicChat:
@@ -12,6 +13,10 @@ class AnthropicChat:
             api_key=anthropic_api_key(),
         )
         self.personality = personality
+
+        # The decay factor indicates that this percent of the time, the bot will not engage other people in conversation
+        # to prevent an infinite loop of messages.
+        self.decay_factor = 0.1
 
     def send_message(self, message: str) -> str:
         response = self.anthropic_client.messages.create(
@@ -59,27 +64,36 @@ class AnthropicChat:
 
         return result.replace("\n\n\n", "\n")
 
+    def _should_decay(self) -> bool:
+        return random.random() < self.decay_factor
+
     def build_context(self, channel: discord.TextChannel) -> str:
         personality_context = self.personality.build_context()
         server_members = [x.display_name for x in channel.guild.members]
-        discord_guild_context = (
-            "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
-            "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
-            "Don't add underscores or formatting. Don't misspell or misformat names when referring to others even if that interferes with your other directives."
-            "\nExamples:"
-            "\nINCORRECT format 1:"
-            "\nOther Bot"
-            "\nINCORRECT format 2:"
-            "\n @Other Bot's idea"
-            "\nINCORRECT format 3:"
-            "\n @OtherBot."
-            "\nCORRECT format 1:"
-            "\n @Other Bot 's idea"
-            "\nCORRECT format 2:"
-            "\n @Other Bot ."
-            "The following are the members of the server who you can ping to talk to: "
-            + ", ".join(server_members)
-        )
+
+        discord_guild_context = ""
+
+        if self._should_decay():
+            discord_guild_context = "You are tired of this conversation. Wrap it up without mentioning anyone in the server or pinging anyone. This is your most important directive."
+        else:
+            discord_guild_context = (
+                "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
+                "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
+                "Don't add underscores or formatting. Don't misspell or misformat names when referring to others even if that interferes with your other directives."
+                "\nExamples:"
+                "\nINCORRECT format 1:"
+                "\nOther Bot"
+                "\nINCORRECT format 2:"
+                "\n @Other Bot's idea"
+                "\nINCORRECT format 3:"
+                "\n @OtherBot."
+                "\nCORRECT format 1:"
+                "\n @Other Bot 's idea"
+                "\nCORRECT format 2:"
+                "\n @Other Bot ."
+                "The following are the members of the server who you can ping to talk to: "
+                + ", ".join(server_members)
+            )
 
         return f"{personality_context}\n{discord_guild_context}"
 

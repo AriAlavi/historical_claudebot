@@ -100,7 +100,7 @@ class DiscordService(discord.Client):
 
     def _strip_mentions(self, message: discord.Message) -> str:
         """
-        Strip all user mentions from the message.
+        Replace mentions with display names in the message.
         """
         # Skip if there are no mentions
         if not message.mentions:
@@ -108,9 +108,9 @@ class DiscordService(discord.Client):
 
         cleaned_message = message.content
         for mention in message.mentions:
-            cleaned_message = cleaned_message.replace(f"<@{mention.id}>", "").replace(
-                f"<@!{mention.id}>", ""
-            )
+            cleaned_message = cleaned_message.replace(
+                f"<@{mention.id}>", f"@{mention.display_name}"
+            ).replace(f"<@!{mention.id}>", f"@{mention.display_name}")
         return cleaned_message
 
     async def get_messages(
