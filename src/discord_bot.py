@@ -90,7 +90,7 @@ class DiscordService(discord.Client):
         ):
             messages.append(
                 DiscordMessage(
-                    author=message.author.name,
+                    author=message.author.display_name,
                     content=self._strip_mentions(message).strip(),
                     directed_to_me=self.user in message.mentions,
                     sent_by_me=message.author == self.user,
