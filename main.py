@@ -1,6 +1,20 @@
 from src.personality import Personality
 from src.bot_factory import BotFactory
 import threading
+from typing import List
+
+
+def _initialize_and_runbots(personalities: List[Personality]) -> List[threading.Thread]:
+    bot_factory = BotFactory()
+
+    bots = [bot_factory.create_bot(personality) for personality in personalities]
+
+    threads = [threading.Thread(target=bot.run) for bot in bots]
+    for thread in threads:
+        thread.daemon = True
+        thread.start()
+
+    return threads
 
 
 def main():
@@ -13,31 +27,15 @@ def main():
         "Slavoj Zizek", "Don't forget to sniff!", larping_allowed=True
     )
 
-    # Create bots
-    carl_jung_bot = bot_factory.create_bot(carl_jung)
-    soren_kierkegaard_bot = bot_factory.create_bot(soren_kierkegaard)
-    slavoj_zizek_bot = bot_factory.create_bot(slavoj_zizek)
+    personalities = [carl_jung, soren_kierkegaard, slavoj_zizek]
 
-    # Run bots
-    # Start bots in separate threads
-
-    jung_thread = threading.Thread(target=carl_jung_bot.run)
-    kierkegaard_thread = threading.Thread(target=soren_kierkegaard_bot.run)
-    zizek_thread = threading.Thread(target=slavoj_zizek_bot.run)
-
-    jung_thread.daemon = True
-    kierkegaard_thread.daemon = True
-    zizek_thread.daemon = True
-
-    jung_thread.start()
-    kierkegaard_thread.start()
-    zizek_thread.start()
+    threads = _initialize_and_runbots(personalities)
 
     # Keep main thread alive but allow keyboard interrupts
     try:
         while True:
-            jung_thread.join(0.1)
-            kierkegaard_thread.join(0.1)
+            for thread in threads:
+                thread.join(0.1)
     except KeyboardInterrupt:
         print("\nShutting down bots...")
 
