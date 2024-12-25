@@ -1,24 +1,8 @@
 import discord
 from threading import Thread
 from src.private_data import discord_token
-from dataclasses import dataclass
 import datetime
-
-
-@dataclass
-class DiscordMessage:
-    author: str
-    content: str
-    directed_to_me: bool
-    sent_by_me: bool
-    timestamp: datetime
-
-    def __str__(self):
-        directed_to_me = "🎯" if self.directed_to_me else ""
-        return f"{self.author}: {directed_to_me} {self.content} ({self.timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
-
-    def __repr__(self):
-        return str(self)
+from src.messenger import Messenger, DiscordMessage
 
 
 class DiscordService(discord.Client):
@@ -29,6 +13,7 @@ class DiscordService(discord.Client):
         super().__init__(intents=intents)
         self._main_channels = {}
         self.message_history_limit = 100
+        self.messenger: Messenger = None
 
     def get_main_channel(self, guild: str) -> discord.TextChannel:
         """
@@ -106,7 +91,9 @@ class DiscordService(discord.Client):
         ]
         return messages
 
-    async def get_messages(self, channel, hours=1) -> list[DiscordMessage]:
+    async def get_messages(
+        self, channel: discord.TextChannel, hours=1
+    ) -> list[DiscordMessage]:
         """
         Fetch messages from the last hour.
         """
@@ -120,7 +107,7 @@ class DiscordService(discord.Client):
             messages.append(
                 DiscordMessage(
                     author=message.author.name,
-                    content=self._strip_mentions(message),
+                    content=self._strip_mentions(message).strip(),
                     directed_to_me=self.user in message.mentions,
                     sent_by_me=message.author == self.user,
                     timestamp=message.created_at,
@@ -137,11 +124,8 @@ class DiscordService(discord.Client):
         # Check if the bot was mentioned
         if self.user in message.mentions:
             # Remove all user mentions from the message
-            cleaned_content = self._strip_mentions(message)
             recent_messages = await self.get_two_way_recent_messages(message.channel)
-            for m in recent_messages:
-                print(m)
-            await self.send_message(cleaned_content, message.channel)
+            await self.messenger.handle_message(recent_messages, message.channel)
 
     def run(self):
         super().run(self.discord_token)
