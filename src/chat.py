@@ -6,11 +6,12 @@ from src.personality import Personality
 
 
 class AnthropicChat:
-    def __init__(self, personality: Personality):
+    def __init__(self, personality: Personality, larping_allowed: bool = False):
         self.anthropic_client = Anthropic(
             api_key=anthropic_api_key(),
         )
         self.personality = personality
+        self.larping_allowed = larping_allowed
 
     def send_message(self, message: str) -> str:
         response = self.anthropic_client.messages.create(
@@ -37,6 +38,26 @@ class AnthropicChat:
             "role": "system",
             "content": self.personality.build_context(),
         }
+
+    @staticmethod
+    def _remove_larping(message: str) -> str:
+        """
+        Remove italics from a message by removing text between asterisks.
+        If there are an odd number of asterisks, returns the original message unchanged.
+        """
+        # Count asterisks
+        if message.count("*") % 2 != 0:
+            return message
+
+        result = ""
+        inside_italics = False
+        for char in message:
+            if char == "*":
+                inside_italics = not inside_italics
+            elif not inside_italics:
+                result += char
+
+        return result
 
     def build_chat_context_two_way(self, messages: List[DiscordMessage]) -> str:
         """
@@ -72,4 +93,9 @@ class AnthropicChat:
         if not response.content:
             return "No response received from Anthropic"
 
-        return response.content[0].text
+        message = response.content[0].text
+
+        if not self.larping_allowed:
+            message = self._remove_larping(message)
+
+        return message
