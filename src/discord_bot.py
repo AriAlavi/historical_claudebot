@@ -125,7 +125,7 @@ class DiscordService(discord.Client):
         # Check if the bot was mentioned
         if self.user in message.mentions:
             # Remove all user mentions from the message
-            recent_messages = await self.get_two_way_recent_messages(message.channel)
+            recent_messages = await self.get_messages(message.channel)
             await self.messenger.handle_message(recent_messages, message.channel)
 
     def run(self):

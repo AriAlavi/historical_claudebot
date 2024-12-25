@@ -19,13 +19,19 @@ def main():
 
     jung_thread = threading.Thread(target=carl_jung_bot.run)
     kierkegaard_thread = threading.Thread(target=soren_kierkegaard_bot.run)
+    jung_thread.daemon = True
+    kierkegaard_thread.daemon = True
 
     jung_thread.start()
     kierkegaard_thread.start()
 
-    # Wait for both threads to complete
-    jung_thread.join()
-    kierkegaard_thread.join()
+    # Keep main thread alive but allow keyboard interrupts
+    try:
+        while True:
+            jung_thread.join(0.1)
+            kierkegaard_thread.join(0.1)
+    except KeyboardInterrupt:
+        print("\nShutting down bots...")
 
 
 if __name__ == "__main__":

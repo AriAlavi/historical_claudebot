@@ -26,7 +26,7 @@ class AnthropicChat:
         """
         return {
             "role": "assistant" if message.sent_by_me else "user",
-            "content": message.content,
+            "content": f"{message.author}: {message.content}",
         }
 
     def _message_is_whitespace(self, message: DiscordMessage) -> bool:
