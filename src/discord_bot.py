@@ -68,8 +68,6 @@ class DiscordService(discord.Client):
         # Find all @mentions in the message
         words = message.split()
 
-        print("Channel members", [x.display_name for x in channel.guild.members])
-
         for i in range(len(words)):
             current_word = words[i]
             if not current_word.startswith("@"):
@@ -78,11 +76,10 @@ class DiscordService(discord.Client):
             possible_display_names = DiscordService._find_permutations_of_words(
                 words[i : i + MAX_NUMBER_OF_WORDS_IN_A_NAME]
             )
-            print("POSSIBLE DISPLAY NAMES", possible_display_names)
             for possible_display_name in possible_display_names:
                 for member in channel.guild.members:
                     if member.display_name == possible_display_name:
-                        print("MEMBER FOUND", member)
+                        print("Pinging member:", member)
                         words[i] = member.mention
                         break
 

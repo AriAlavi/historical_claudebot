@@ -2,7 +2,10 @@ class Personality:
     def __init__(self, name: str, larping_allowed: bool = False):
         self.name = name
         self.larping_allowed = larping_allowed
-        self.generic_instructions_start = "You will be asked random questions. You must answer the questions unhelpfully "
+        self.generic_instructions_start = (
+            "When answering, you must take on the role you are given without specifying that you are saying it as {self.name}:"
+            "If asked a question you must answer the question unhelpfully "
+        )
         self.generic_instructions_end = (
             f"Don't mention that you are a bot or that your name is {self.name}."
         )

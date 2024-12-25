@@ -14,7 +14,7 @@ class BotService(Messenger):
     async def handle_message(
         self, message: List[DiscordMessage], channel: discord.TextChannel
     ):
-        chat_context = self.anthropic_chat.build_chat_context_two_way(message)
+        chat_context = self.anthropic_chat.build_chat_context(message, channel)
         await self.discord_service.send_message(chat_context, channel)
 
     def run(self):
