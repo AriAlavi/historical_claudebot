@@ -4,12 +4,14 @@ from src.private_data import discord_token
 import datetime
 from src.messenger import Messenger, DiscordMessage
 from src.personality import Personality
+from typing import List
 
 
 class DiscordService(discord.Client):
     def __init__(self, personality: Personality):
         intents = discord.Intents.default()
         intents.message_content = True
+        intents.members = True
         self.discord_token = discord_token(personality.name)
         super().__init__(intents=intents)
         self._main_channels = {}
@@ -51,12 +53,51 @@ class DiscordService(discord.Client):
         channel = self.get_main_channel(guild)
         await channel.send(message)
 
+    @staticmethod
+    def _find_permutations_of_words(words: List[str]) -> List[str]:
+        possible_display_names = []
+        words = [x.lstrip("@") for x in words]
+        for i in range(1, len(words)):
+            possible_display_names.append(" ".join(words[0:i]))
+        return possible_display_names
+
+    async def _replace_mentions(
+        self, message: str, channel: discord.TextChannel
+    ) -> str:
+        MAX_NUMBER_OF_WORDS_IN_A_NAME = 10
+        # Find all @mentions in the message
+        words = message.split()
+
+        print("Channel members", [x.display_name for x in channel.guild.members])
+
+        for i in range(len(words)):
+            current_word = words[i]
+            if not current_word.startswith("@"):
+                continue
+
+            possible_display_names = DiscordService._find_permutations_of_words(
+                words[i : i + MAX_NUMBER_OF_WORDS_IN_A_NAME]
+            )
+            print("POSSIBLE DISPLAY NAMES", possible_display_names)
+            for possible_display_name in possible_display_names:
+                for member in channel.guild.members:
+                    if member.display_name == possible_display_name:
+                        print("MEMBER FOUND", member)
+                        words[i] = member.mention
+                        break
+
+        message = " ".join(words)
+        return message
+
     async def send_message(self, message: str, channel: discord.TextChannel):
         """
         Send a message to a specific channel.
         """
         if not message:
             return
+
+        message = await self._replace_mentions(message, channel)
+
         print(f"Sending message {message}")
         await channel.send(message)
 
