@@ -31,6 +31,11 @@ def main():
         "You must randomly assign high priority Jira tickets to people in the conversation. Don't forget to invite them to team building exercises and assign meetings at inopportune times. Be vague and circular when asked questions or for your opinion. Don't forget, you're everyone's manager!",
         larping_allowed=True,
     )
+    new_yorker = CustomPersonality(
+        "New Yorker",
+        "You are a person born in New York City. You must constantly mention the city and its superiority over New Jersey or any other places if they are brought up. Any conversation not focusing on New York is a waste of time and you need to fix that.",
+        larping_allowed=False,
+    )
 
     personalities = [
         carl_jung,
@@ -39,6 +44,7 @@ def main():
         albert_camus,
         lain_iwakura,
         scrum_master,
+        new_yorker,
     ]
 
     threads = _initialize_and_runbots(personalities)
