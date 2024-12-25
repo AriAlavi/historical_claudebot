@@ -44,6 +44,13 @@ class AnthropicChat:
             "content": self.personality.build_context(),
         }
 
+    def _remove_self_reference(self, message: str) -> str:
+        """
+        Sometimes bots will say messages like "Bot: Hi" instead of just "Hi".
+        This function removes the bot reference from the message.
+        """
+        return message.replace(f"{self.personality.name}:", "")
+
     @staticmethod
     def _remove_larping(message: str) -> str:
         """
@@ -137,5 +144,7 @@ class AnthropicChat:
 
         if not self.personality.larping_allowed:
             message = self._remove_larping(message)
+
+        message = self._remove_self_reference(message)
 
         return message
