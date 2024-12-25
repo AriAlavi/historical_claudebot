@@ -7,7 +7,7 @@ from src.personality import Personality
 def main():
     personality = Personality("Carl Jung", None)
     anthropic_client = AnthropicChat(personality)
-    discord_service = DiscordService()
+    discord_service = DiscordService(personality)
 
     bot_service = BotService(discord_service, anthropic_client)
     bot_service.run()

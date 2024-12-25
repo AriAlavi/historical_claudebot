@@ -3,13 +3,14 @@ from threading import Thread
 from src.private_data import discord_token
 import datetime
 from src.messenger import Messenger, DiscordMessage
+from src.personality import Personality
 
 
 class DiscordService(discord.Client):
-    def __init__(self):
+    def __init__(self, personality: Personality):
         intents = discord.Intents.default()
         intents.message_content = True
-        self.discord_token = discord_token()
+        self.discord_token = discord_token(personality.name)
         super().__init__(intents=intents)
         self._main_channels = {}
         self.message_history_limit = 100

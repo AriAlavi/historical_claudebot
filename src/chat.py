@@ -6,12 +6,11 @@ from src.personality import Personality
 
 
 class AnthropicChat:
-    def __init__(self, personality: Personality, larping_allowed: bool = False):
+    def __init__(self, personality: Personality):
         self.anthropic_client = Anthropic(
             api_key=anthropic_api_key(),
         )
         self.personality = personality
-        self.larping_allowed = larping_allowed
 
     def send_message(self, message: str) -> str:
         response = self.anthropic_client.messages.create(
@@ -57,7 +56,7 @@ class AnthropicChat:
             elif not inside_italics:
                 result += char
 
-        return result
+        return result.replace("\n\n\n", "\n")
 
     def build_chat_context_two_way(self, messages: List[DiscordMessage]) -> str:
         """
@@ -95,7 +94,7 @@ class AnthropicChat:
 
         message = response.content[0].text
 
-        if not self.larping_allowed:
+        if not self.personality.larping_allowed:
             message = self._remove_larping(message)
 
         return message

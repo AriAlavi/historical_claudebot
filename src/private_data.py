@@ -11,5 +11,7 @@ def anthropic_api_key() -> str:
     return _load_private_data()["anthropic_api_key"]
 
 
-def discord_token() -> str:
-    return _load_private_data()["discord_token"]
+def discord_token(personality: str) -> str:
+    personality_name = personality.replace(" ", "_").lower()
+
+    return _load_private_data()[f"discord_token_{personality_name}"]
