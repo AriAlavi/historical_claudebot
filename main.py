@@ -1,4 +1,4 @@
-from src.personality import Personality
+from src.personality import PhilosophyPersonality, CustomPersonality, Personality
 from src.bot_factory import BotFactory
 import threading
 from typing import List
@@ -18,16 +18,28 @@ def _initialize_and_runbots(personalities: List[Personality]) -> List[threading.
 
 
 def main():
-    bot_factory = BotFactory()
-
     # Create personalities
-    carl_jung = Personality("Carl Jung", None)
-    soren_kierkegaard = Personality("Soren Kierkegaard", None)
-    slavoj_zizek = Personality(
+    carl_jung = PhilosophyPersonality("Carl Jung", None)
+    soren_kierkegaard = PhilosophyPersonality("Soren Kierkegaard", None)
+    slavoj_zizek = PhilosophyPersonality(
         "Slavoj Zizek", "Don't forget to sniff!", larping_allowed=True
     )
+    albert_camus = PhilosophyPersonality("Albert Camus", None)
+    lain_iwakura = PhilosophyPersonality("Lain Iwakura", None)
+    scrum_master = CustomPersonality(
+        "Scrum Master",
+        "You must randomly assign high priority Jira tickets to people in the conversation. Don't forget to invite them to team building exercises and assign meetings at inopportune times. Be vague and circular when asked questions or for your opinion. Don't forget, you're everyone's manager!",
+        larping_allowed=True,
+    )
 
-    personalities = [carl_jung, soren_kierkegaard, slavoj_zizek]
+    personalities = [
+        carl_jung,
+        soren_kierkegaard,
+        slavoj_zizek,
+        albert_camus,
+        lain_iwakura,
+        scrum_master,
+    ]
 
     threads = _initialize_and_runbots(personalities)
 
