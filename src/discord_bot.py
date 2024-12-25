@@ -1,6 +1,24 @@
 import discord
 from threading import Thread
 from src.private_data import discord_token
+from dataclasses import dataclass
+import datetime
+
+
+@dataclass
+class DiscordMessage:
+    author: str
+    content: str
+    directed_to_me: bool
+    sent_by_me: bool
+    timestamp: datetime
+
+    def __str__(self):
+        directed_to_me = "🎯" if self.directed_to_me else ""
+        return f"{self.author}: {directed_to_me} {self.content} ({self.timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
+
+    def __repr__(self):
+        return str(self)
 
 
 class DiscordService(discord.Client):
@@ -10,6 +28,7 @@ class DiscordService(discord.Client):
         self.discord_token = discord_token()
         super().__init__(intents=intents)
         self._main_channels = {}
+        self.message_history_limit = 100
 
     def get_main_channel(self, guild: str) -> discord.TextChannel:
         """
@@ -50,6 +69,8 @@ class DiscordService(discord.Client):
         """
         Send a message to a specific channel.
         """
+        if not message:
+            return
         print(f"Sending message {message}")
         await channel.send(message)
 
@@ -68,6 +89,45 @@ class DiscordService(discord.Client):
             )
         return cleaned_message
 
+    async def get_two_way_recent_messages(
+        self, channel, limit=100
+    ) -> list[DiscordMessage]:
+        """
+        Fetch messages from the last hour that either mention the bot or were sent by the bot
+        Returns: List of (timestamp, author, content) tuples
+
+        Used for a two-way conversation with the bot.
+        """
+        messages = await self.get_messages(channel, limit)
+        messages = [
+            message
+            for message in messages
+            if message.directed_to_me or message.sent_by_me
+        ]
+        return messages
+
+    async def get_messages(self, channel, hours=1) -> list[DiscordMessage]:
+        """
+        Fetch messages from the last hour.
+        """
+        messages = []
+        one_hour_ago = datetime.datetime.now(
+            datetime.timezone.utc
+        ) - datetime.timedelta(hours=hours)
+        async for message in channel.history(
+            limit=self.message_history_limit, oldest_first=False, after=one_hour_ago
+        ):
+            messages.append(
+                DiscordMessage(
+                    author=message.author.name,
+                    content=self._strip_mentions(message),
+                    directed_to_me=self.user in message.mentions,
+                    sent_by_me=message.author == self.user,
+                    timestamp=message.created_at,
+                )
+            )
+        return sorted(messages, key=lambda x: x.timestamp)
+
     async def on_message(self, message: discord.Message):
         """Handle incoming messages"""
         # Ignore own messages
@@ -78,6 +138,9 @@ class DiscordService(discord.Client):
         if self.user in message.mentions:
             # Remove all user mentions from the message
             cleaned_content = self._strip_mentions(message)
+            recent_messages = await self.get_two_way_recent_messages(message.channel)
+            for m in recent_messages:
+                print(m)
             await self.send_message(cleaned_content, message.channel)
 
     def run(self):
