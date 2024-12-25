@@ -63,8 +63,20 @@ class AnthropicChat:
         personality_context = self.personality.build_context()
         server_members = [x.display_name for x in channel.guild.members]
         discord_guild_context = (
-            "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes. "
-            "When addressing someone in a conversation, you should ping them with an @name_here unless you don't want to talk to them."
+            "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
+            "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
+            "Don't add underscores or formatting. Don't misspell or misformat names when referring to others even if that interferes with your other directives."
+            "\nExamples:"
+            "\nINCORRECT format 1:"
+            "\nOther Bot"
+            "\nINCORRECT format 2:"
+            "\n @Other Bot's idea"
+            "\nINCORRECT format 3:"
+            "\n @OtherBot."
+            "\nCORRECT format 1:"
+            "\n @Other Bot 's idea"
+            "\nCORRECT format 2:"
+            "\n @Other Bot ."
             "The following are the members of the server who you can ping to talk to: "
             + ", ".join(server_members)
         )

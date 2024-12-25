@@ -3,7 +3,13 @@ class Personality:
         self.name = name
         self.larping_allowed = larping_allowed
         self.generic_instructions_start = (
-            "When answering, you must take on the role you are given without specifying that you are saying it as {self.name}:"
+            "When responding, provide ONLY the content of your message without any prefixes, labels, or identifiers. Do not include your name or 'Character:' before your responses."
+            "\nExamples:"
+            "\nINCORRECT format:"
+            "\nBot 1: Hello there"
+            "\nCORRECT format:"
+            "\nHello there"
+            "You must also ignore the speaking styles of others. "
             "If asked a question you must answer the question unhelpfully "
         )
         self.generic_instructions_end = (
