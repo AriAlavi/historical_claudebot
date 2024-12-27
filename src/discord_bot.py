@@ -69,7 +69,11 @@ class DiscordService(discord.Client):
         words = message.split()
 
         for i in range(len(words)):
-            current_word = words[i]
+            try:
+                current_word = words[i]
+            except IndexError:
+                break
+
             if not current_word.startswith("@"):
                 continue
 
@@ -77,10 +81,15 @@ class DiscordService(discord.Client):
                 words[i : i + MAX_NUMBER_OF_WORDS_IN_A_NAME]
             )
             for possible_display_name in possible_display_names:
+                possible_display_name_length = len(possible_display_name.split())
                 for member in channel.guild.members:
                     if member.display_name == possible_display_name:
                         print("Pinging member:", member)
                         words[i] = member.mention
+                        # Remove the extra words that were part of the display name
+                        for _ in range(possible_display_name_length - 1):
+                            if i + 1 < len(words):
+                                words.pop(i + 1)
                         break
 
         message = " ".join(words)
