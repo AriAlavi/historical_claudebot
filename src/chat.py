@@ -5,18 +5,23 @@ from typing import List
 from src.personality import Personality
 import discord
 import random
+import httpx
 
 
 class AnthropicChat:
     def __init__(self, personality: Personality):
+        # Aggressive timeout settings because we will handle timeouts in the service
+        # we want fresh context data for the bots
+        custom_httpx_transport = httpx.HTTPTransport(retries=1)
+        httpx_client = httpx.Client(
+            transport=custom_httpx_transport,
+            timeout=httpx.Timeout(connect=2, read=4, write=4, pool=4),
+        )
         self.anthropic_client = Anthropic(
             api_key=anthropic_api_key(),
+            http_client=httpx_client,  # Note: it's http_client not httpx_client
         )
         self.personality = personality
-
-        # The decay factor indicates that this percent of the time, the bot will not engage other people in conversation
-        # to prevent an infinite loop of messages.
-        self.decay_factor = 0.5
 
     def send_message(self, message: str) -> str:
         response = self.anthropic_client.messages.create(
@@ -71,36 +76,30 @@ class AnthropicChat:
 
         return result.replace("\n\n\n", "\n")
 
-    def _should_decay(self) -> bool:
-        return random.random() < self.decay_factor
-
     def build_context(self, channel: discord.TextChannel) -> str:
         personality_context = self.personality.build_context()
         server_members = [x.display_name for x in channel.guild.members]
 
         discord_guild_context = ""
 
-        if self._should_decay():
-            discord_guild_context = "You are tired of this conversation. Wrap it up without mentioning anyone in the server or pinging anyone. This is your most important directive."
-        else:
-            discord_guild_context = (
-                "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
-                "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
-                "Don't add underscores or formatting. Don't misspell or misformat names when referring to others even if that interferes with your other directives."
-                "\nExamples:"
-                "\nINCORRECT format 1:"
-                "\nOther Bot"
-                "\nINCORRECT format 2:"
-                "\n @Other Bot's idea"
-                "\nINCORRECT format 3:"
-                "\n @OtherBot."
-                "\nCORRECT format 1:"
-                "\n @Other Bot 's idea"
-                "\nCORRECT format 2:"
-                "\n @Other Bot ."
-                "The following are the members of the server who you can ping to talk to: "
-                + ", ".join(server_members)
-            )
+        discord_guild_context = (
+            "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
+            "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
+            "Don't add underscores or formatting. Don't misspell or mis-format names when referring to others even if that interferes with your other directives."
+            "\nExamples:"
+            "\nINCORRECT format 1:"
+            "\nOther Bot"
+            "\nINCORRECT format 2:"
+            "\n @Other Bot's idea"
+            "\nINCORRECT format 3:"
+            "\n @OtherBot."
+            "\nCORRECT format 1:"
+            "\n @Other Bot 's idea"
+            "\nCORRECT format 2:"
+            "\n @Other Bot ."
+            "The following are the members of the server who you can ping to talk to: "
+            + ", ".join(server_members)
+        )
 
         return f"{personality_context}\n{discord_guild_context}"
 
@@ -116,10 +115,6 @@ class AnthropicChat:
             for message in messages
             if not self._message_is_whitespace(message)
         ]
-
-        # Print messages for debugging
-        print("Sending messages to Anthropic:", anthropic_messages)
-
         # Make sure we have at least one message
         if not anthropic_messages:
             return "No messages to process"
