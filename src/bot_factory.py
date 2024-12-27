@@ -8,7 +8,8 @@ from src.context import ContextBuilder
 
 
 class BotFactory:
-    def __init__(self, calls_per_second: int):
+    def __init__(self, calls_per_minute: int):
+        calls_per_second = calls_per_minute / 60
         self.anthropic_scheduler = AnthropicScheduler(calls_per_second=calls_per_second)
 
     def create_bot(self, personality: Personality) -> BotService:

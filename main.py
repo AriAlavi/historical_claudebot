@@ -10,7 +10,7 @@ import traceback
 async def _initialize_and_run_bots(
     personalities: List[Personality],
 ) -> List[threading.Thread]:
-    bot_factory = BotFactory(calls_per_second=0.1)
+    bot_factory = BotFactory(calls_per_minute=2)
 
     # Create bots
     bots = [bot_factory.create_bot(personality) for personality in personalities]
