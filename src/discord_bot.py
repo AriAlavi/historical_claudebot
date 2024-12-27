@@ -1,22 +1,20 @@
 import discord
-from threading import Thread
-from src.private_data import discord_token
 import datetime
-from src.messenger import Messenger, DiscordMessage
-from src.personality import Personality
+from src.messenger import DiscordMessageHandler, DiscordMessage
 from typing import List
+import asyncio
 
 
 class DiscordService(discord.Client):
-    def __init__(self, personality: Personality):
+    def __init__(self, discord_token: str):
         intents = discord.Intents.default()
         intents.message_content = True
         intents.members = True
-        self.discord_token = discord_token(personality.name)
+        self.discord_token = discord_token
         super().__init__(intents=intents)
         self._main_channels = {}
         self.message_history_limit = 20
-        self.messenger: Messenger = None
+        self.messenger: DiscordMessageHandler = None
 
     def get_main_channel(self, guild: str) -> discord.TextChannel:
         """
@@ -38,12 +36,6 @@ class DiscordService(discord.Client):
             print(f"Using random channel in guild: {channel}")
             self._main_channels[guild] = channel
             return channel
-
-    def run_sync(self):
-        """
-        Run the discord client in a separate thread.
-        """
-        Thread(target=self.run, args=(self.discord_token,), daemon=True).start()
 
     async def send_general_message(self, message: str, guild: str):
         """
@@ -95,12 +87,14 @@ class DiscordService(discord.Client):
         message = " ".join(words)
         return message
 
-    async def send_message(self, message: str, channel: discord.TextChannel):
+    async def send_message(self, message: str, channel_id: int):
         """
         Send a message to a specific channel.
         """
         if not message:
             return
+
+        channel = self.get_channel(channel_id)
 
         message = await self._replace_mentions(message, channel)
 
@@ -139,9 +133,8 @@ class DiscordService(discord.Client):
                 DiscordMessage(
                     author=message.author.display_name,
                     content=self._strip_mentions(message).strip(),
-                    directed_to_me=self.user in message.mentions,
-                    sent_by_me=message.author == self.user,
                     timestamp=message.created_at,
+                    sent_by_me=message.author == self.user,
                 )
             )
         return sorted(messages, key=lambda x: x.timestamp)
@@ -156,10 +149,12 @@ class DiscordService(discord.Client):
         if self.user in message.mentions:
             # Remove all user mentions from the message
             recent_messages = await self.get_messages(message.channel)
-            await self.messenger.handle_message(recent_messages, message.channel)
+            await self.messenger.handle_discord_message(
+                recent_messages, message.channel.id
+            )
 
-    def run(self):
-        super().run(self.discord_token)
+    async def run(self):
+        await self.start(self.discord_token)
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")

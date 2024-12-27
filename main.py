@@ -3,18 +3,36 @@ from src.bot_factory import BotFactory
 import threading
 from typing import List
 
+import asyncio
+import traceback
 
-def _initialize_and_runbots(personalities: List[Personality]) -> List[threading.Thread]:
-    bot_factory = BotFactory()
 
+async def _initialize_and_run_bots(
+    personalities: List[Personality],
+) -> List[threading.Thread]:
+    bot_factory = BotFactory(calls_per_second=0.1)
+
+    # Create bots
     bots = [bot_factory.create_bot(personality) for personality in personalities]
 
-    threads = [threading.Thread(target=bot.run) for bot in bots]
-    for thread in threads:
-        thread.daemon = True
-        thread.start()
+    # Gather all the bot coroutines
+    bot_tasks = [asyncio.create_task(bot.run()) for bot in bots]
 
-    return threads
+    # Run bot factory alongside bots
+    factory_task = asyncio.create_task(bot_factory.run())
+    try:
+        await asyncio.gather(factory_task, *bot_tasks)
+    except Exception as e:
+        # Cancel all tasks on error
+        for task in [factory_task, *bot_tasks]:
+            task.cancel()
+        raise e
+
+
+def handle_exception(loop, context):
+    msg = context.get("exception", context["message"])
+    print(f"Caught exception: {msg}")
+    traceback.print_exc()
 
 
 def main():
@@ -69,15 +87,9 @@ def main():
         peasant,
     ]
 
-    threads = _initialize_and_runbots(personalities)
-
-    # Keep main thread alive but allow keyboard interrupts
-    try:
-        while True:
-            for thread in threads:
-                thread.join(0.1)
-    except KeyboardInterrupt:
-        print("\nShutting down bots...")
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(handle_exception)
+    asyncio.run(_initialize_and_run_bots(personalities))
 
 
 if __name__ == "__main__":
