@@ -2,32 +2,41 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import datetime
 from typing import List
-import discord
+from src.personality import Personality
 
 
 @dataclass
 class DiscordMessage:
     author: str
     content: str
-    directed_to_me: bool
-    sent_by_me: bool
     timestamp: datetime
 
     def __str__(self):
-        directed_to_me = "🎯" if self.directed_to_me else ""
-        return f"{self.author}: {directed_to_me} {self.content} ({self.timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
+        return f"{self.author}: {self.content} ({self.timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
 
     def __repr__(self):
         return str(self)
 
 
-class Messenger(ABC):
+@dataclass
+class AnthropicMessage:
+    channel_id: int
+    personality: Personality
+
+
+class DiscordMessageHandler(ABC):
     @abstractmethod
-    async def handle_message(
-        self, message: List[DiscordMessage], channel: discord.TextChannel
+    async def handle_discord_message(
+        self, message: List[DiscordMessage], channel_id: int
     ):
         pass
 
     @abstractmethod
     def run(self):
+        pass
+
+
+class AnthropicMessageHandler(ABC):
+    @abstractmethod
+    def handle_anthropic_message(self, message: AnthropicMessage):
         pass

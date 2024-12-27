@@ -5,14 +5,19 @@ from typing import List
 
 
 def _initialize_and_runbots(personalities: List[Personality]) -> List[threading.Thread]:
-    bot_factory = BotFactory()
+    bot_factory = BotFactory(calls_per_second=0.25)
 
     bots = [bot_factory.create_bot(personality) for personality in personalities]
 
     threads = [threading.Thread(target=bot.run) for bot in bots]
+    factory_thread = threading.Thread(target=bot_factory.run, daemon=True)
+
     for thread in threads:
         thread.daemon = True
         thread.start()
+
+    factory_thread.start()
+    threads.append(factory_thread)
 
     return threads
 
