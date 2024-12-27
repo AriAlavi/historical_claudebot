@@ -60,10 +60,9 @@ class AnthropicScheduler:
         anthropic_message_handler = self.anthropic_message_handlers[
             anthropic_call.personality_name
         ]
-        asyncio.run(
-            anthropic_message_handler.handle_anthropic_message(
-                AnthropicMessage(anthropic_call.channel_id, personality)
-            )
+
+        anthropic_message_handler.handle_anthropic_message(
+            AnthropicMessage(anthropic_call.channel_id, personality)
         )
 
     def silence_bots(self):
@@ -87,20 +86,11 @@ class AnthropicScheduler:
         Start the scheduler with the given event loop
         """
         print("Starting AnthropicScheduler")
-        # Create and set a new event loop for this thread
-        self._loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._loop)
-        print(f"Created new event loop: {self._loop}")
-
         # Start the sampler with our new loop
         self.call_storage.start()
         print("Started call storage")
 
-        try:
-            # Keep the loop running
-            self._loop.run_forever()
-        finally:
-            self._loop.close()
+
 
     def stop(self):
         self.call_storage.stop()

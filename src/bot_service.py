@@ -25,7 +25,6 @@ class BotService(DiscordMessageHandler, AnthropicMessageHandler):
         self.anthropic_scheduler = anthropic_scheduler
         self.context_builder = context_builder
         self.discord_service.messenger = self
-        self._loop = asyncio.new_event_loop()
 
     async def handle_discord_message(
         self, message: List[DiscordMessage], channel_id: int
@@ -55,7 +54,4 @@ class BotService(DiscordMessageHandler, AnthropicMessageHandler):
         await self.discord_service.send_message(message.channel_id, response)
 
     def run(self):
-        print("Building bot service event loop")
-        asyncio.set_event_loop(self._loop)
         self.discord_service.run()
-        print("I made it here")

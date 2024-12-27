@@ -24,7 +24,6 @@ class WeightedKeySampler:
         self._running = False
         self._sampling_thread: Optional[threading.Thread] = None
         # Create an event loop for this thread
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
 
     def record_key(self, key: Hashable) -> None:
         """
@@ -66,11 +65,8 @@ class WeightedKeySampler:
             keys, weights = zip(*items)
             selected_key = random.choices(keys, weights=weights, k=1)[0]
 
-            if self._loop is None:
-                return
-
             # Instead of awaiting directly, just schedule the task and move on
-            asyncio.run(self._output_func(selected_key))
+            self._output_func(selected_key)
 
             del self._counts[selected_key]
 
@@ -96,8 +92,6 @@ class WeightedKeySampler:
             print("Sampling thread already running")
             return
 
-        self._loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._loop)
         self._running = True
         self._sampling_thread = threading.Thread(
             target=self._sampling_loop, daemon=True
