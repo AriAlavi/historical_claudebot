@@ -9,7 +9,6 @@ from src.messenger import (
 )
 from src.context import ContextBuilder
 from typing import List
-import asyncio
 
 
 class BotService(DiscordMessageHandler, AnthropicMessageHandler):

@@ -3,7 +3,6 @@ from src.personality import Personality
 from typing import Dict
 from collections import namedtuple
 from src.messenger import AnthropicMessageHandler, AnthropicMessage
-import asyncio
 
 AnthropicCall = namedtuple("AnthropicCall", ["personality_name", "channel_id"])
 
@@ -89,8 +88,6 @@ class AnthropicScheduler:
         # Start the sampler with our new loop
         self.call_storage.start()
         print("Started call storage")
-
-
 
     def stop(self):
         self.call_storage.stop()
