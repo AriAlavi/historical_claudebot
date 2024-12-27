@@ -10,6 +10,7 @@ class DiscordMessage:
     author: str
     content: str
     timestamp: datetime
+    sent_by_me: bool
 
     def __str__(self):
         return f"{self.author}: {self.content} ({self.timestamp.strftime('%Y-%m-%d %H:%M:%S')})"
@@ -31,12 +32,8 @@ class DiscordMessageHandler(ABC):
     ):
         pass
 
-    @abstractmethod
-    def run(self):
-        pass
-
 
 class AnthropicMessageHandler(ABC):
     @abstractmethod
-    def handle_anthropic_message(self, message: AnthropicMessage):
+    async def handle_anthropic_message(self, message: AnthropicMessage):
         pass

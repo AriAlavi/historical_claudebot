@@ -20,8 +20,8 @@ class BotFactory:
             context_builder=ContextBuilder(discord_service, personality),
         )
 
-    def run(self):
-        self.anthropic_scheduler.run()
+    async def run(self):
+        return await self.anthropic_scheduler.run()
 
-    def stop(self):
-        self.anthropic_scheduler.stop()
+    async def stop(self):
+        await self.anthropic_scheduler.stop()

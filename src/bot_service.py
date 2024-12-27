@@ -9,6 +9,7 @@ from src.messenger import (
 )
 from src.context import ContextBuilder
 from typing import List
+import asyncio
 
 
 class BotService(DiscordMessageHandler, AnthropicMessageHandler):
@@ -38,7 +39,7 @@ class BotService(DiscordMessageHandler, AnthropicMessageHandler):
         self.anthropic_scheduler.register_anthropic_message_handler(
             self.context_builder.personality, self
         )
-        self.anthropic_scheduler.request_anthropic_call(
+        await self.anthropic_scheduler.request_anthropic_call(
             self.context_builder.personality, channel_id
         )
 
@@ -46,11 +47,16 @@ class BotService(DiscordMessageHandler, AnthropicMessageHandler):
         """
         The anthropic scheduler will call this method when a message must be sent.
         """
-        print("Handling anthropic message")
+        print(
+            "Handling anthropic message for personality: ",
+            message.personality.name,
+            "channel_id: ",
+            message.channel_id,
+        )
         context = await self.context_builder.build_context(message.channel_id)
         print("Build context for personality: ", message.personality.name)
         response = self.anthropic_chat.send_message(context)
-        await self.discord_service.send_message(message.channel_id, response)
+        await self.discord_service.send_message(response, message.channel_id)
 
-    def run(self):
-        self.discord_service.run()
+    async def run(self):
+        return await self.discord_service.run()

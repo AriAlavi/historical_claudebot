@@ -2,6 +2,7 @@ import discord
 import datetime
 from src.messenger import DiscordMessageHandler, DiscordMessage
 from typing import List
+import asyncio
 
 
 class DiscordService(discord.Client):
@@ -86,12 +87,14 @@ class DiscordService(discord.Client):
         message = " ".join(words)
         return message
 
-    async def send_message(self, message: str, channel: discord.TextChannel):
+    async def send_message(self, message: str, channel_id: int):
         """
         Send a message to a specific channel.
         """
         if not message:
             return
+
+        channel = self.get_channel(channel_id)
 
         message = await self._replace_mentions(message, channel)
 
@@ -131,6 +134,7 @@ class DiscordService(discord.Client):
                     author=message.author.display_name,
                     content=self._strip_mentions(message).strip(),
                     timestamp=message.created_at,
+                    sent_by_me=message.author == self.user,
                 )
             )
         return sorted(messages, key=lambda x: x.timestamp)
@@ -149,8 +153,8 @@ class DiscordService(discord.Client):
                 recent_messages, message.channel.id
             )
 
-    def run(self):
-        super().run(self.discord_token, log_handler=None)
+    async def run(self):
+        await self.start(self.discord_token)
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")

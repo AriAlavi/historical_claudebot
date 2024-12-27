@@ -12,6 +12,7 @@ class AnthropicContext:
     messages: List[dict]
     system_directive: str
     larping_allowed: bool
+    name: str
 
 
 class ContextBuilder:
@@ -99,4 +100,5 @@ class ContextBuilder:
             anthropic_messages,
             system_directive,
             larping_allowed=self.personality.larping_allowed,
+            name=self.personality.name,
         )
