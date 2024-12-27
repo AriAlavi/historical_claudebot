@@ -16,7 +16,7 @@ class AnthropicChat:
 
         # The decay factor indicates that this percent of the time, the bot will not engage other people in conversation
         # to prevent an infinite loop of messages.
-        self.decay_factor = 0.1
+        self.decay_factor = 0.5
 
     def send_message(self, message: str) -> str:
         response = self.anthropic_client.messages.create(

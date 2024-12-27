@@ -7,17 +7,21 @@ class Personality:
             "You are {self.name}. "
             "If asked a question you must answer the question unhelpfully "
         )
-        self.generic_instructions_end = (
-            f"Don't mention that you are a bot or that your name is {self.name}."
-        )
+        self.generic_instructions_end = f"Don't mention that you are a bot or that your name is {self.name}, speak in the 1st person tense."
 
     def build_context(self):
         return (
             self.generic_instructions_start
             + self.custom_context()
-            + f"{'No accents or roleplaying.' if not self.larping_allowed else ''}"
+            + self.build_larp_context()
             + self.generic_instructions_end
         )
+
+    def build_larp_context(self):
+        if self.larping_allowed:
+            return ""
+
+        return "No accents or roleplaying."
 
     def custom_context(self):
         raise NotImplementedError("Custom context not implemented")
