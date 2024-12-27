@@ -10,14 +10,12 @@ def _initialize_and_runbots(personalities: List[Personality]) -> List[threading.
     bots = [bot_factory.create_bot(personality) for personality in personalities]
 
     threads = [threading.Thread(target=bot.run) for bot in bots]
-    factory_thread = threading.Thread(target=bot_factory.run, daemon=True)
 
     for thread in threads:
         thread.daemon = True
         thread.start()
 
-    factory_thread.start()
-    threads.append(factory_thread)
+    bot_factory.run()
 
     return threads
 

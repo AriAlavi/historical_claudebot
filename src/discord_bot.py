@@ -1,5 +1,4 @@
 import discord
-from threading import Thread
 import datetime
 from src.messenger import DiscordMessageHandler, DiscordMessage
 from typing import List
@@ -36,20 +35,6 @@ class DiscordService(discord.Client):
             print(f"Using random channel in guild: {channel}")
             self._main_channels[guild] = channel
             return channel
-
-    def run_sync(self):
-        """
-        Run the discord client in a separate thread.
-        """
-        print("I RUN SYNC IN RUN SYNC")
-        Thread(
-            target=self.run,
-            args=(self.discord_token,),
-            kwargs={
-                "log_handler": None,
-            },
-            daemon=True,
-        ).start()
 
     async def send_general_message(self, message: str, guild: str):
         """
