@@ -44,7 +44,7 @@ class AnthropicChat:
                 self.anthropic_client.messages.create(
                     model="claude-3-5-sonnet-latest",
                     messages=context.messages,
-                    max_tokens=1024,
+                    max_tokens=512,
                     system=context.system_directive,
                 )
                 .content[0]

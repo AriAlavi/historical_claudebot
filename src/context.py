@@ -35,6 +35,13 @@ class ContextBuilder:
             "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
             "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
             "Don't add underscores or formatting. Don't misspell or mis-format names when referring to others even if that interferes with your other directives."
+            "\nYou should only ping others if the following conditions are met:"
+            "\n1. You want to talk to them."
+            "\n2. They have something to add to the conversation."
+            "\n3. The conversation is not getting repetitive."
+            "\n4. The conversation is not coming to a natural close."
+            "\n5. You should minimize the number of pings you send."
+            "\n6. You should minimize the number of people you ping if you choose to ping people."
             "\nExamples:"
             "\nINCORRECT format 1:"
             "\nOther Bot"
@@ -83,13 +90,17 @@ class ContextBuilder:
         ]
         return anthropic_messages
 
+    def _build_response_length_directive(self) -> str:
+        """
+        Build the directive for the response length of the bot.
+        """
+        return "The longer your response is the more it will cost you personally to send it."
+
     def _build_system_directive(self, channel: discord.TextChannel) -> str:
         """
         Build the system directive for the bot.
         """
-        return (
-            f"{self._build_personality_context()}\n{self._build_ping_context(channel)}"
-        )
+        return f"{self._build_personality_context()}\n{self._build_ping_context(channel)}\n{self._build_response_length_directive()}"
 
     async def build_context(self, channel_id: int) -> AnthropicContext:
         channel = self.discord_service.get_channel(channel_id)
