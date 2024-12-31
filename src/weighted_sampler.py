@@ -6,7 +6,10 @@ from collections import defaultdict
 
 class WeightedKeySampler:
     def __init__(
-        self, sampling_interval: float, output_func: Callable[[Hashable], Coroutine]
+        self,
+        sampling_interval: float,
+        decay_chance_per_minute: float,
+        output_func: Callable[[Hashable], Coroutine],
     ):
         """
         Initialize the weighted key sampler.
@@ -14,12 +17,14 @@ class WeightedKeySampler:
         Args:
             sampling_interval: Time in seconds between sampling events
             output_func: Async function to call with the selected key when sampling
+            decay_chance: Chance that the least weighted key will be removed from the sampler
         """
         self._counts: Dict[Hashable, int] = defaultdict(int)
         self._sampling_interval = sampling_interval
         self._output_func = output_func
         self._lock = asyncio.Lock()
         self._should_stop = asyncio.Event()
+        self.decay_chance_per_minute = decay_chance_per_minute
 
     async def record_key(self, key: Hashable) -> None:
         """
@@ -48,12 +53,49 @@ class WeightedKeySampler:
         async with self._lock:
             self._counts.clear()
 
+    def __str__(self) -> str:
+        string_list = []
+        for key, count in self._counts.items():
+            string_list.append(f"{key.personality_name}: {count}")
+        return "\n".join(string_list)
+
+    def _get_least_weighted_key(self) -> Optional[Hashable]:
+        """
+        Get the least weighted key in the sampler.
+        """
+        if not self._counts:
+            return None
+        return min(self._counts, key=self._counts.get)
+
+    def _delete_least_weighted_key(self):
+        """
+        Delete the least weighted key in the sampler.
+        """
+        least_weighted_key = self._get_least_weighted_key()
+        if least_weighted_key is not None:
+            del self._counts[least_weighted_key]
+
+    def _should_decay(self) -> bool:
+        """
+        Decide if the least weighted key should be removed from the sampler.
+        """
+        if self.decay_chance_per_minute / self._samples_per_minute() > random.random():
+            print("Should decay")
+            return True
+        return False
+
+    def _samples_per_minute(self) -> float:
+        return 60 / self._sampling_interval
+
     async def _sample_and_reset(self) -> None:
         """
         Randomly select a key weighted by its count, reset counts, and call output function.
         This method is called periodically by the sampling task.
         """
         async with self._lock:
+            if self._should_decay():
+                self._delete_least_weighted_key()
+
             items = list(self._counts.items())
             if not items:
                 return

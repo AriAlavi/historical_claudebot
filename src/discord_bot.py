@@ -41,7 +41,7 @@ class DiscordService(discord.Client):
         """
         Send a message to the general channel of a guild.
         """
-        print(f"Sending message {message}")
+        print("Sending discord message")
         channel = self.get_main_channel(guild)
         await channel.send(message)
 
@@ -98,7 +98,7 @@ class DiscordService(discord.Client):
 
         message = await self._replace_mentions(message, channel)
 
-        print(f"Sending message {message}")
+        print("Sending discord message")
         await channel.send(message)
 
     def _strip_mentions(self, message: discord.Message) -> str:

@@ -32,8 +32,8 @@ class ContextBuilder:
         """
         server_members = [x.display_name for x in channel.guild.members]
         discord_guild_context = (
-            "You can ping people with an @name_here to talk to them. Don't add punctuation to the names like commas or apostrophes or spaces. "
-            "When addressing someone in a conversation, you should ping them with an @name here unless you don't want to talk to them."
+            "You can ping people with an @name here to talk to them. Don't add punctuation to the names like commas or apostrophes or periods. "
+            "You should only ping people in conversations if you want a response from them. If you don't  want a response, just mention their name without the @ symbol so you don't ping them."
             "Don't add underscores or formatting. Don't misspell or mis-format names when referring to others even if that interferes with your other directives."
             "\nYou should only ping others if the following conditions are met:"
             "\n1. You want to talk to them."
@@ -94,7 +94,7 @@ class ContextBuilder:
         """
         Build the directive for the response length of the bot.
         """
-        return "The longer your response is the more it will cost you personally to send it."
+        return "The longer your response is the more it will cost you personally to send it. Your response should generally be less than a paragraph long."
 
     def _build_system_directive(self, channel: discord.TextChannel) -> str:
         """

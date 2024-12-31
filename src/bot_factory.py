@@ -8,9 +8,12 @@ from src.context import ContextBuilder
 
 
 class BotFactory:
-    def __init__(self, calls_per_minute: int):
+    def __init__(self, calls_per_minute: int, decay_chance_per_minute: float):
         calls_per_second = calls_per_minute / 60
-        self.anthropic_scheduler = AnthropicScheduler(calls_per_second=calls_per_second)
+        self.anthropic_scheduler = AnthropicScheduler(
+            calls_per_second=calls_per_second,
+            decay_chance_per_minute=decay_chance_per_minute,
+        )
 
     def create_bot(self, personality: Personality) -> BotService:
         discord_service = DiscordService(discord_token(personality.name))

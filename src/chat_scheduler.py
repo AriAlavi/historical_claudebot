@@ -9,10 +9,12 @@ AnthropicCall = namedtuple("AnthropicCall", ["personality_name", "channel_id"])
 
 
 class AnthropicScheduler:
-    def __init__(self, calls_per_second: int):
+    def __init__(self, calls_per_second: int, decay_chance_per_minute: float):
         sampling_interval = 1 / calls_per_second
         self.call_storage = WeightedKeySampler(
-            sampling_interval=sampling_interval, output_func=self.make_anthropic_call
+            sampling_interval=sampling_interval,
+            output_func=self.make_anthropic_call,
+            decay_chance_per_minute=decay_chance_per_minute,
         )
         self.personalities: Dict[str, Personality] = {}
         self.anthropic_message_handlers: Dict[str, AnthropicMessageHandler] = {}
