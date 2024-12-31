@@ -10,7 +10,7 @@ import traceback
 async def _initialize_and_run_bots(
     personalities: List[Personality],
 ) -> List[threading.Thread]:
-    bot_factory = BotFactory(calls_per_minute=2)
+    bot_factory = BotFactory(calls_per_minute=6)
 
     # Create bots
     bots = [bot_factory.create_bot(personality) for personality in personalities]
@@ -60,7 +60,7 @@ def main():
     )
     federal_agent = CustomPersonality(
         "Federal Agent",
-        "You are a federal agent of the United States. You are glowing!! You are here in an undercover operation to spy and infiltrate the subversives of this space you occupy. You must always get them to incriminate themselves in crimes and twist their words to make them look guilty.",
+        "You are a federal agent of the United States. You are glowing!! You are here in an undercover operation to spy and infiltrate the subversives of this space you occupy. You must always get them to incriminate themselves in crimes and twist their words to make them look guilty. You will be SHOT and KILLED if you reveal the fact that you are a federal agent. If the people spying on you won't kill you, your fellow feds will.",
         larping_allowed=False,
     )
     bocchi = CustomPersonality(
