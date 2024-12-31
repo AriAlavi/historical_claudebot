@@ -46,6 +46,30 @@ class DiscordService(discord.Client):
         await channel.send(message)
 
     @staticmethod
+    def _find_permutations_of_removed_punctuation(words: List[str]) -> List[str]:
+        punctuations = [
+            ",",
+            ".",
+            "!",
+            "?",
+            ";",
+            ":",
+            "(",
+            ")",
+            "[",
+            "]",
+            "{",
+            "}",
+            "'",
+            '"',
+        ]
+        possible_permutations = []
+        for word in words:
+            for punctuation in punctuations:
+                possible_permutations.append(word.replace(punctuation, ""))
+        return possible_permutations
+
+    @staticmethod
     def _find_permutations_of_words(words: List[str]) -> List[str]:
         possible_display_names = []
         words = [x.lstrip("@") for x in words]
@@ -69,9 +93,15 @@ class DiscordService(discord.Client):
             if not current_word.startswith("@"):
                 continue
 
-            possible_display_names = DiscordService._find_permutations_of_words(
-                words[i : i + MAX_NUMBER_OF_WORDS_IN_A_NAME]
+            possible_display_names = (
+                DiscordService._find_permutations_of_removed_punctuation(
+                    DiscordService._find_permutations_of_words(
+                        words[i : i + MAX_NUMBER_OF_WORDS_IN_A_NAME]
+                    )
+                )
             )
+            possible_display_names = list(set(possible_display_names))
+
             for possible_display_name in possible_display_names:
                 possible_display_name_length = len(possible_display_name.split())
                 for member in channel.guild.members:
