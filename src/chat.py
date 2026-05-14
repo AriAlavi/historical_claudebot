@@ -42,7 +42,7 @@ class AnthropicChat:
         try:
             response = (
                 self.anthropic_client.messages.create(
-                    model="claude-3-5-sonnet-latest",
+                    model="claude-4-6-sonnet-latest",
                     messages=context.messages,
                     max_tokens=512,
                     system=context.system_directive,
